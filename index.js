@@ -49,17 +49,37 @@ async function run() {
             res.send(services);
         });
 
+        app.get('/reviewsByEmail/:email', async (req, res) => {
+            const query = { email: req.params.email }
+            const cursor = reviewCollection.find(query)
+            const services = await cursor.toArray();
+            res.send(services);
+        });
+
         app.post('/reviews', async (req, res) => {
             // const decoded = req.decoded;
 
             // if(decoded.email !== req.query.email){
             //     res.status(403).send({message: 'unauthorized access'})
             // }
-            console.log(req.body)
-            const result = reviewCollection.insertOne(req.body)
+            const result = await reviewCollection.insertOne(req.body)
+            console.log(result)
 
             res.send(result);
         });
+
+        app.delete('/reviews/:id', async (req, res) => {
+            const query = { _id: new ObjectId(req.params.id) }
+            const result = await reviewCollection.deleteOne(query);
+            res.send(result);
+        });
+
+        app.patch('/reviews/:id', async (req, res) => {
+            const query = { _id: new ObjectId(req.params.id) }
+            const result = await reviewCollection.updateOne(query, { $set: { text: req.body.text } });
+            res.send(result);
+        });
+
 
 
     }
