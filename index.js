@@ -20,6 +20,13 @@ async function run() {
     try {
         const serviceCollection = client.db('amatoryReview').collection('services');
         const reviewCollection = client.db('amatoryReview').collection('reviews');
+
+        app.post('/jwt', (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' })
+            res.send({ token })
+        })
+
         app.get('/services', async (req, res) => {
             const query = {}
             const cursor = serviceCollection.find(query).limit(+req.query.limit);
