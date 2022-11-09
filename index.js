@@ -16,6 +16,49 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@clu
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
+async function run() {
+    try {
+        const serviceCollection = client.db('amatoryReview').collection('services');
+        const reviewCollection = client.db('amatoryReview').collection('reviews');
+        app.get('/services', async (req, res) => {
+            const query = {}
+            const cursor = serviceCollection.find(query).limit(+req.query.limit);
+            const services = await cursor.toArray();
+            res.send(services);
+        });
+
+        app.get('/services/:id', async (req, res) => {
+            const id = req.params.id
+            const oid = new ObjectId(id)
+            const query = { _id: oid };
+            const service = await serviceCollection.findOne(query);
+            res.send(service);
+        });
+
+        app.get('/reviews/:serviceId', async (req, res) => {
+            const query = {}
+            const cursor = reviewCollection.find(query)
+            const services = await cursor.toArray();
+            res.send(services);
+        });
+
+        app.post('/reviews/:serviceId', async (req, res) => {
+            const query = {}
+            const cursor = reviewCollection.find(query)
+            const services = await cursor.toArray();
+            res.send(services);
+        });
+
+
+    }
+    finally {
+
+    }
+
+}
+
+run().catch(err => console.error(err));
+
 app.get('/', (req, res) => {
     res.send('Amatory Review server is running')
 })
