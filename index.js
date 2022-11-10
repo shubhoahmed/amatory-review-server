@@ -15,6 +15,23 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@clu
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+function verifyJWT(req, res, next) {
+    const authHeader = req.headers.authorization;
+    console.log(authHeader)
+
+    if (!authHeader) {
+        return res.status(401).send({ message: 'unauthorized access' });
+    }
+    const token = authHeader.split(' ')[1];
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+        if (err) {
+            return res.status(403).send({ message: 'Forbidden access' });
+        }
+        req.decoded = decoded;
+        next();
+    })
+}
 
 async function run() {
     try {
@@ -29,7 +46,7 @@ async function run() {
 
         app.get('/services', async (req, res) => {
             const query = {}
-            const cursor = serviceCollection.find(query).limit(+req.query.limit);
+            const cursor = serviceCollection.find(query).sort({ _id: -1 }).limit(+req.query.limit);
             const services = await cursor.toArray();
             res.send(services);
         });
@@ -52,12 +69,18 @@ async function run() {
 
         app.get('/reviews/:serviceId', async (req, res) => {
             const query = { serviceId: req.params.serviceId }
-            const cursor = reviewCollection.find(query)
+            const cursor = reviewCollection.find(query).sort({ date: -1 })
             const services = await cursor.toArray();
             res.send(services);
         });
 
-        app.get('/reviewsByEmail/:email', async (req, res) => {
+        app.get('/reviewsByEmail/:email', verifyJWT, async (req, res) => {
+            const decoded = req.decoded;
+            console.log(decoded);
+            if (decoded.email !== req.params.email) {
+
+                return res.status(403).send({ message: 'unauthorized access' })
+            }
             const query = { email: req.params.email }
             const cursor = reviewCollection.find(query)
             const services = await cursor.toArray();
