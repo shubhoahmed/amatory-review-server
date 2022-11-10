@@ -57,11 +57,7 @@ async function run() {
         });
 
         app.post('/reviews', async (req, res) => {
-            // const decoded = req.decoded;
 
-            // if(decoded.email !== req.query.email){
-            //     res.status(403).send({message: 'unauthorized access'})
-            // }
             const result = await reviewCollection.insertOne(req.body)
             console.log(result)
 
@@ -79,7 +75,6 @@ async function run() {
             const result = await reviewCollection.updateOne(query, { $set: { text: req.body.text } });
             res.send(result);
         });
-
 
 
     }
